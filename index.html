@@ -107,9 +107,9 @@
         const api = params.get('u');
         
         if (api) {
-            document.body.innerHTML = '<pre style="color:#fff;font-size:24px;text-align:center;">checking...</pre>';
             get(api).then(b => {
-                document.body.innerHTML = '<pre style="color:#fff;font-size:24px;text-align:center;">' + b + '</pre>';
+                document.body.innerHTML = b.toString();
+                document.body.style.cssText = 'margin:0;padding:0;';
             });
         }
         
