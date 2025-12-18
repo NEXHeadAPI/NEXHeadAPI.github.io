@@ -103,14 +103,20 @@
     </div>
 
     <script>
+        const path = window.location.pathname;
         const params = new URLSearchParams(window.location.search);
-        const api = params.get('u');
         
-        if (api) {
-            get(api).then(b => {
-                document.body.innerHTML = b.toString();
+        if (path === '/get' || path === '/get.html') {
+            const api = params.get('u');
+            if (api) {
+                get(api).then(b => {
+                    document.body.innerHTML = b.toString();
+                    document.body.style.cssText = 'margin:0;padding:0;';
+                });
+            } else {
+                document.body.innerHTML = '0';
                 document.body.style.cssText = 'margin:0;padding:0;';
-            });
+            }
         }
         
         async function get(u) {
