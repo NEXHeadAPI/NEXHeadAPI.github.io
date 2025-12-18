@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HEAD Request Content Length</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>HEAD Request Content Length</h1>
+    <div id="result">Loading...</div>
+
+    <script>
+        function getQueryParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        async function fetchHeadContentLength(url) {
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                const contentLength = response.headers.get('Content-Length');
+                document.getElementById('result').innerText = contentLength 
+                    ? `Content Length: ${contentLength} bytes` 
+                    : 'Content Length not available.';
+            } catch (error) {
+                document.getElementById('result').innerText = 'Error fetching the URL.';
+            }
+        }
+
+        const url = getQueryParameter('url');
+        if (url) {
+            fetchHeadContentLength(url);
+        } else {
+            document.getElementById('result').innerText = 'Please provide a URL.';
+        }
+    </script>
+
+</body>
+</html>
