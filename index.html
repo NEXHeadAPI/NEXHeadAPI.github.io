@@ -104,7 +104,7 @@
 
     <script>
         const params = new URLSearchParams(window.location.search);
-        const api = params.get('url');
+        const api = params.get('u');
         
         if (api) {
             document.body.innerHTML = '<pre style="color:#fff;font-size:24px;text-align:center;">checking...</pre>';
@@ -117,10 +117,15 @@
             try {
                 if (!u.startsWith('http')) u = 'https://' + u;
                 
-                const proxy = 'https://corsproxy.io/?' + encodeURIComponent(u);
-                const res = await fetch(proxy);
-                const text = await res.text();
-                return new Blob([text]).size;
+                const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(u);
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                
+                if (data.contents) {
+                    const lengthBytes = new Blob([data.contents]).size;
+                    return lengthBytes;
+                }
+                return 0;
             } catch (e) {
                 console.error(e);
                 return 0;
