@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API</title>
+</head>
+<body>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const api = params.get('u');
+        
+        if (api) {
+            get(api).then(b => {
+                document.body.innerHTML = b.toString();
+                document.body.style.cssText = 'margin:0;padding:0;';
+            });
+        } else {
+            document.body.innerHTML = '0';
+            document.body.style.cssText = 'margin:0;padding:0;';
+        }
+        
+        async function get(u) {
+            try {
+                if (!u.startsWith('http')) u = 'https://' + u;
+                
+                const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(u);
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                
+                if (data.contents) {
+                    const lengthBytes = new Blob([data.contents]).size;
+                    return lengthBytes;
+                }
+                return 0;
+            } catch (e) {
+                console.error(e);
+                return 0;
+            }
+        }
+    </script>
+</body>
+</html>
