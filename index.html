@@ -3,52 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HEAD Request Content Length</title>
+    <title>Content Length API</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(#ffffff08 1px, transparent 1px) 0 0 / 40px 40px,
+                linear-gradient(90deg, #ffffff08 1px, transparent 1px) 0 0 / 40px 40px,
+                linear-gradient(90deg, #FF94CE40, #C579E540, #7496FC40), #000;
+            background-attachment: fixed;
+            color: #ddd;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .box {
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            color: #fff;
+            text-align: center;
+        }
+        
+        .group {
+            margin-bottom: 16px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 16px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 15px;
+            transition: border-color 0.2s;
+            text-align: center;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.4);
+        }
+        
+        input::placeholder {
+            color: #555;
+        }
+        
+        .out {
+            margin-top: 48px;
+            text-align: center;
+            display: none;
+        }
+        
+        .out.vis {
+            display: block;
+        }
+        
+        .num {
+            font-size: 48px;
+            font-weight: 700;
+            color: #fff;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .txt {
+            color: #888;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        
+        .err {
+            color: #ff6b6b;
         }
     </style>
 </head>
 <body>
-
-    <h1>HEAD Request Content Length</h1>
-    <div id="result">Loading...</div>
+    <div class="box">
+        <h1>test</h1>
+        
+        <div class="group">
+            <input type="text" id="url" placeholder="https://google.com" autocomplete="off">
+        </div>
+        
+        <div id="out" class="out">
+            <div class="num" id="num">0</div>
+            <div class="txt" id="txt">bytes</div>
+        </div>
+    </div>
 
     <script>
-        function getQueryParameter(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
+        const params = new URLSearchParams(window.location.search);
+        const api = params.get('url');
+        
+        if (api) {
+            document.body.innerHTML = '<pre style="color:#fff;font-size:24px;text-align:center;">checking...</pre>';
+            get(api).then(b => {
+                document.body.innerHTML = '<pre style="color:#fff;font-size:24px;text-align:center;">' + b + '</pre>';
+            });
         }
-
-        async function fetchHeadContentLength(url) {
+        
+        async function get(u) {
             try {
-                // Use a public CORS proxy
-                const proxyUrl = 'https://api.allorigins.win/get?url=';
-                const response = await fetch(proxyUrl + encodeURIComponent(url), { method: 'GET' });
-                const data = await response.json(); // Get the response data
-                if (data.contents) {
-                    const blob = new Blob([data.contents]);
-                    const contentLength = blob.size;
-                    document.getElementById('result').innerText = contentLength 
-                        ? contentLength 
-                        : 'Content Length not available.';
-                } else {
-                    document.body.innerText = 'Content Length not available.';
-                }
-            } catch (error) {
-                document.body.innerText = 'Error fetching the URL. ' + error.message;
+                if (!u.startsWith('http')) u = 'https://' + u;
+                
+                const proxy = 'https://corsproxy.io/?' + encodeURIComponent(u);
+                const res = await fetch(proxy);
+                const text = await res.text();
+                return new Blob([text]).size;
+            } catch (e) {
+                console.error(e);
+                return 0;
             }
         }
-
-        const url = getQueryParameter('url');
-        if (url) {
-            fetchHeadContentLength(url);
-        } else {
-            document.body.innerText = 'Please provide a URL.';
+        
+        async function check() {
+            const inp = document.getElementById('url');
+            const out = document.getElementById('out');
+            const num = document.getElementById('num');
+            const txt = document.getElementById('txt');
+            
+            let u = inp.value.trim();
+            if (!u) {
+                out.classList.remove('vis');
+                return;
+            }
+            
+            num.textContent = 'checking...';
+            txt.textContent = '';
+            out.classList.add('vis');
+            
+            const size = await get(u);
+            
+            num.textContent = size.toLocaleString();
+            txt.textContent = size === 0 ? 'failed' : 'bytes';
+            txt.className = size === 0 ? 'txt err' : 'txt';
+        }
+        
+        const inp = document.getElementById('url');
+        if (inp) {
+            inp.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') check();
+            });
+            inp.addEventListener('input', () => {
+                if (inp.value.trim()) check();
+            });
         }
     </script>
-
 </body>
 </html>
