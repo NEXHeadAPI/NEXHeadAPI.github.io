@@ -9,11 +9,6 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        #result {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-        }
     </style>
 </head>
 <body>
@@ -31,11 +26,11 @@
             try {
                 const response = await fetch(url, { method: 'HEAD' });
                 const contentLength = response.headers.get('Content-Length');
-                document.getElementById('result').innerText = contentLength 
-                    ? `Content Length: ${contentLength} bytes` 
+                document.body.innerText = contentLength 
+                    ? contentLength 
                     : 'Content Length not available.';
             } catch (error) {
-                document.getElementById('result').innerText = 'Error fetching the URL.';
+                document.body.innerText = 'Error fetching the URL.';
             }
         }
 
@@ -43,7 +38,7 @@
         if (url) {
             fetchHeadContentLength(url);
         } else {
-            document.getElementById('result').innerText = 'Please provide a URL.';
+            document.body.innerText = 'Please provide a URL.';
         }
     </script>
 
