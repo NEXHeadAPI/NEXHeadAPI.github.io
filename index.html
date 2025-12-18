@@ -24,13 +24,21 @@
 
         async function fetchHeadContentLength(url) {
             try {
-                const response = await fetch(url, { method: 'HEAD' });
-                const contentLength = response.headers.get('Content-Length');
-                document.body.innerText = contentLength 
-                    ? contentLength 
-                    : 'Content Length not available.';
+                // Use a public CORS proxy
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const response = await fetch(proxyUrl + encodeURIComponent(url), { method: 'GET' });
+                const data = await response.json(); // Get the response data
+                if (data.contents) {
+                    const blob = new Blob([data.contents]);
+                    const contentLength = blob.size;
+                    document.getElementById('result').innerText = contentLength 
+                        ? contentLength 
+                        : 'Content Length not available.';
+                } else {
+                    document.body.innerText = 'Content Length not available.';
+                }
             } catch (error) {
-                document.body.innerText = 'Error fetching the URL.';
+                document.body.innerText = 'Error fetching the URL. ' + error.message;
             }
         }
 
