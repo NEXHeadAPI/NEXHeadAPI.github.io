@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>len</title>
+    <title>Content Length API</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: monospace;
-            background: #111;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(#ffffff08 1px, transparent 1px) 0 0 / 40px 40px,
+                linear-gradient(90deg, #ffffff08 1px, transparent 1px) 0 0 / 40px 40px,
+                linear-gradient(90deg, #FF94CE40, #C579E540, #7496FC40), #000;
+            background-attachment: fixed;
             color: #ddd;
+            line-height: 1.6;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -24,116 +28,142 @@
         }
         
         h1 {
-            font-size: 24px;
+            font-size: 32px;
+            font-weight: 700;
             margin-bottom: 32px;
             color: #fff;
             text-align: center;
         }
         
+        .group {
+            margin-bottom: 16px;
+        }
+        
         input {
             width: 100%;
             padding: 16px;
-            background: #222;
-            border: 1px solid #333;
-            border-radius: 4px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
             color: #fff;
-            font-size: 14px;
+            font-size: 15px;
+            transition: border-color 0.2s;
             text-align: center;
-            outline: none;
         }
         
         input:focus {
-            border-color: #555;
+            outline: none;
+            border-color: rgba(255,255,255,0.4);
+        }
+        
+        input::placeholder {
+            color: #555;
         }
         
         .out {
-            margin-top: 40px;
+            margin-top: 48px;
             text-align: center;
             display: none;
         }
         
-        .vis {
+        .out.vis {
             display: block;
         }
         
         .num {
-            font-size: 40px;
+            font-size: 48px;
+            font-weight: 700;
             color: #fff;
+            font-variant-numeric: tabular-nums;
         }
         
-        .sub {
-            color: #666;
-            font-size: 12px;
-            margin-top: 5px;
+        .txt {
+            color: #888;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        
+        .err {
+            color: #ff6b6b;
         }
     </style>
 </head>
 <body>
     <div class="box">
-        <h1>length check</h1>
-        <input type="text" id="inp" placeholder="url here" autocomplete="off">
+        <h1>test</h1>
         
-        <div id="res" class="out">
-            <div class="num" id="val">0</div>
-            <div class="sub" id="lbl">bytes</div>
+        <div class="group">
+            <input type="text" id="url" placeholder="https://google.com" autocomplete="off">
+        </div>
+        
+        <div id="out" class="out">
+            <div class="num" id="num">0</div>
+            <div class="txt" id="txt">bytes</div>
         </div>
     </div>
 
     <script>
-        const p = new URLSearchParams(location.search);
-        const q = p.get('u');
-
-        if (q) {
-            document.head.remove();
+        const params = new URLSearchParams(window.location.search);
+        const api = params.get('u');
+        
+        if (api) {
+            document.head.innerHTML = '';
             document.body.innerHTML = '';
-            document.body.style.cssText = 'background:#fff;color:#000;margin:0;font-family:monospace;font-size:20px;padding:5px';
+            document.body.style.cssText = 'background:#fff;color:#000;margin:0;padding:0;';
             
-            check(q).then(n => {
-                document.body.innerText = n;
+            get(api).then(b => {
+                document.body.innerText = b;
             });
-        } else {
-            const i = document.getElementById('inp');
-            const r = document.getElementById('res');
-            const v = document.getElementById('val');
-            const l = document.getElementById('lbl');
-
-            i.addEventListener('keypress', e => {
-                if (e.key === 'Enter') run();
-            });
-            
-            let t;
-            i.addEventListener('input', () => {
-                clearTimeout(t);
-                t = setTimeout(() => {
-                    if (i.value.trim()) run();
-                }, 400);
-            });
-
-            async function run() {
-                let s = i.value.trim();
-                if (!s) return;
-
-                v.textContent = '...';
-                l.textContent = 'loading';
-                r.classList.add('vis');
-
-                const n = await check(s);
-                v.textContent = n.toLocaleString();
-                l.textContent = n === 0 ? 'error' : 'bytes';
-            }
         }
 
-        async function check(url) {
+        async function get(u) {
             try {
-                if (!url.startsWith('http')) url = 'https://' + url;
-                const req = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
-                const len = req.headers.get('content-length');
-                if (len) return parseInt(len);
-                const b = await req.blob();
+                if (!u.startsWith('http')) u = 'https://' + u;
+                const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(u));
+                const h = r.headers.get('content-length');
+                if (h) return parseInt(h);
+                const b = await r.blob();
                 return b.size;
             } catch {
                 return 0;
             }
+        }
+        
+        if (!api) {
+            const inp = document.getElementById('url');
+            const out = document.getElementById('out');
+            const num = document.getElementById('num');
+            const txt = document.getElementById('txt');
+            
+            async function check() {
+                let u = inp.value.trim();
+                if (!u) {
+                    out.classList.remove('vis');
+                    return;
+                }
+                
+                num.textContent = 'checking...';
+                txt.textContent = '';
+                out.classList.add('vis');
+                
+                const size = await get(u);
+                
+                num.textContent = size.toLocaleString();
+                txt.textContent = size === 0 ? 'failed' : 'bytes';
+                txt.className = size === 0 ? 'txt err' : 'txt';
+            }
+            
+            inp.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') check();
+            });
+            
+            let t;
+            inp.addEventListener('input', () => {
+                clearTimeout(t);
+                t = setTimeout(() => {
+                    if (inp.value.trim()) check();
+                }, 500);
+            });
         }
     </script>
 </body>
